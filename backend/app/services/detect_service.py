@@ -1,15 +1,18 @@
 import joblib
 import pandas as pd
+from datetime import datetime
 
-from backend.app.services.history_service import get_latest_transaction
+from backend.app.database import SessionLocal
+from backend.app.models.transaction import Transaction
 
+# Load model ML
 model = joblib.load("backend/Models/model_fraud_rf.pkl")
 
 print(model)
 print(model.feature_names_in_)
 
 def detect_latest_transaction():
-    
+
     sample = pd.DataFrame([{
         "category": 1,
         "amt": 500000,
@@ -27,11 +30,43 @@ def detect_latest_transaction():
         "trans_dayofyear": 142
     }])
 
-    prediction = model.predict(sample)[0]
-    prediction_label = "Low Risk" if prediction == 0 else "High Risk"
+    # Prediction dari model ML
+    # prediction = model.predict(sample)[0]
 
-    result = {
-        "prediction": int (prediction)
+    # sementara dummy dulu
+    prediction = 1
+
+    prediction_label = (
+        "Low Risk"
+        if prediction == 0
+        else "High Risk"
+    )
+
+    now = datetime.now()
+
+    db = SessionLocal()
+
+    new_transaction = Transaction(
+        merchant="Tokopedia",
+        amount=500000,
+        status=prediction_label,
+        location="Jakarta",
+        time=now.strftime("%H:%M"),
+        date=now.strftime("%Y-%m-%d")
+    )
+
+    db.add(new_transaction)
+
+    db.commit()
+
+    db.refresh(new_transaction)
+
+    db.close()
+
+    return {
+        "prediction": prediction_label,
+        "transaction_id": new_transaction.id,
+        "merchant": new_transaction.merchant,
+        "amount": new_transaction.amount,
+        "status": new_transaction.status
     }
-
-    return {"prediction": prediction_label}

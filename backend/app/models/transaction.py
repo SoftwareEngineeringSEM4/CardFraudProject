@@ -1,10 +1,14 @@
-class Transaction:
-    def __init__(self, id, merchant, amount, status, location, time, date):
-        self.id = id
-        self.merchant = merchant
-        self.amount = amount
-        self.status = status
-        self.location = location
-        self.time = time
-        self.date = date
-        pass
+from sqlalchemy import Column, Integer, String
+from backend.app.database import Base
+
+class Transaction(Base):
+
+    __tablename__ = "transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    merchant = Column(String)
+    amount = Column(Integer)
+    status = Column(String)
+    location = Column(String)
+    time = Column(String)
+    date = Column(String)
