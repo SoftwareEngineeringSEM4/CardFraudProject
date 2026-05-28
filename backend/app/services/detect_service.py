@@ -5,14 +5,18 @@ from datetime import datetime
 from backend.app.database import SessionLocal
 from backend.app.models.transaction import Transaction
 
-# Load model ML
+# Load scaler dan model terbaru
+scaler = joblib.load("backend/Models/scaler_fraud.pkl")
 model = joblib.load("backend/Models/model_fraud_rf.pkl")
 
+# Debug
 print(model)
-print(model.feature_names_in_)
+print(scaler.feature_names_in_)
+
 
 def detect_latest_transaction():
 
+    # Sample dummy transaction
     sample = pd.DataFrame([{
         "category": 1,
         "amt": 500000,
@@ -25,17 +29,20 @@ def detect_latest_transaction():
         "trans_month": 5,
         "trans_day": 22,
         "trans_hour": 14,
-        "trans_minute": 30,
         "trans_dayofweek": 4,
         "trans_dayofyear": 142
     }])
 
-    # Prediction dari model ML
-    # prediction = model.predict(sample)[0]
+    # Samakan urutan feature dengan scaler
+    sample = sample[list(scaler.feature_names_in_)]
 
-    # sementara dummy dulu
-    prediction = 1
+    # Scaling data sebelum prediction
+    scaled_sample = scaler.transform(sample)
 
+    # Prediction asli dari model ML
+    prediction = model.predict(scaled_sample)[0]
+
+    # Label hasil prediction
     prediction_label = (
         "Low Risk"
         if prediction == 0
@@ -46,6 +53,7 @@ def detect_latest_transaction():
 
     db = SessionLocal()
 
+    # Simpan transaksi ke database
     new_transaction = Transaction(
         merchant="Tokopedia",
         amount=500000,
@@ -56,13 +64,11 @@ def detect_latest_transaction():
     )
 
     db.add(new_transaction)
-
     db.commit()
-
     db.refresh(new_transaction)
-
     db.close()
 
+    # Return response API
     return {
         "prediction": prediction_label,
         "transaction_id": new_transaction.id,
