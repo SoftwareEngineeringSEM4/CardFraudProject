@@ -1,8 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import (
-    OAuth2PasswordBearer,
-    OAuth2PasswordRequestForm
-)
+from fastapi import APIRouter, Depends, HTTPException  
+from fastapi.security import OAuth2PasswordBearer
 
 from sqlalchemy.orm import Session
 
@@ -30,8 +27,13 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 # FORMAT DATA USER
-class User(BaseModel):
+class UserRegister(BaseModel):
     username: str
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
     password: str
 
 # DATABASE SESSION
@@ -100,7 +102,7 @@ def verify_token(
 # REGISTER
 @router.post("/register")
 def register(
-    user: User,
+    user: UserRegister,
     db: Session = Depends(get_db)
 ):
 
@@ -115,12 +117,24 @@ def register(
             detail="Username already exists"
         )
 
+    existing_email = db.query(UserModel).filter(
+        UserModel.email == user.email
+    ).first()
+
+    if existing_email:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Email already exists"
+        )
+
     hashed_password = pwd_context.hash(
         user.password
     )
 
     new_user = UserModel(
         username=user.username,
+        email=user.email,
         password=hashed_password
     )
 
@@ -134,33 +148,34 @@ def register(
         "success": True,
         "message": "User registered successfully",
         "data": {
-            "username": new_user.username
+            "username": new_user.username,
+            "email": new_user.email
         }
     }
 
 # LOGIN
 @router.post("/login")
 def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    user: UserLogin,
     db: Session = Depends(get_db)
 ):
 
     db_user = db.query(UserModel).filter(
-        UserModel.username == form_data.username
+        UserModel.email == user.email
     ).first()
 
     if (
         not db_user
         or
         not pwd_context.verify(
-            form_data.password,
+            user.password,
             db_user.password
         )
     ):
 
         raise HTTPException(
             status_code=401,
-            detail="Invalid username or password"
+            detail="Invalid email or password"
         )
 
     token = create_access_token({
