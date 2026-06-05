@@ -5,7 +5,7 @@ from datetime import datetime
 from backend.app.database import SessionLocal
 from backend.app.models.transaction import Transaction
 
-# Load scaler dan model terbaru
+# Load scaler dan model
 scaler = joblib.load("backend/Models/scaler_fraud.pkl")
 model = joblib.load("backend/Models/model_fraud_rf.pkl")
 
@@ -13,52 +13,96 @@ model = joblib.load("backend/Models/model_fraud_rf.pkl")
 print(model)
 print(scaler.feature_names_in_)
 
-
-def detect_latest_transaction():
-
-    # Sample dummy transaction
-    sample = pd.DataFrame([{
+# Dummy merchant data
+MERCHANT_DATA = {
+    "Tokopedia": {
         "category": 1,
-        "amt": 500000,
         "state": 1,
-        "city_pop": 100000,
-        "merch_zipcode": 12345,
-        "age": 21,
-        "distance_km": 5,
-        "gender_female": 0,
-        "trans_month": 5,
-        "trans_day": 22,
-        "trans_hour": 14,
-        "trans_dayofweek": 4,
-        "trans_dayofyear": 142
+        "city_pop": 1000000,
+        "merch_zipcode": 10110,
+        "distance_km": 5
+    },
+    "Shopee": {
+        "category": 2,
+        "state": 1,
+        "city_pop": 1200000,
+        "merch_zipcode": 10220,
+        "distance_km": 8
+    },
+    "Traveloka": {
+        "category": 3,
+        "state": 2,
+        "city_pop": 800000,
+        "merch_zipcode": 40115,
+        "distance_km": 20
+    },
+    "Netflix": {
+        "category": 4,
+        "state": 3,
+        "city_pop": 500000,
+        "merch_zipcode": 60231,
+        "distance_km": 15
+    },
+    "Steam": {
+        "category": 5,
+        "state": 4,
+        "city_pop": 700000,
+        "merch_zipcode": 80119,
+        "distance_km": 30
+    }
+}
+
+
+def detect_transaction(data):
+
+    merchant_data = MERCHANT_DATA.get(data.merchant)
+
+    if not merchant_data:
+        return {
+            "error": "Merchant not found"
+        }
+
+    now = datetime.now()
+
+    sample = pd.DataFrame([{
+        "category": merchant_data["category"],
+        "amt": data.amount,
+        "state": merchant_data["state"],
+        "city_pop": merchant_data["city_pop"],
+        "merch_zipcode": merchant_data["merch_zipcode"],
+        "age": data.age,
+        "distance_km": merchant_data["distance_km"],
+        "gender_female": 1 if data.gender.lower() == "female" else 0,
+        "trans_month": now.month,
+        "trans_day": now.day,
+        "trans_hour": now.hour,
+        "trans_dayofweek": now.weekday(),
+        "trans_dayofyear": now.timetuple().tm_yday
     }])
 
     # Samakan urutan feature dengan scaler
     sample = sample[list(scaler.feature_names_in_)]
 
-    # Scaling data sebelum prediction
+    # Scaling
     scaled_sample = scaler.transform(sample)
 
-    # Prediction asli dari model ML
+    # Predict
     prediction = model.predict(scaled_sample)[0]
 
-    # Label hasil prediction
     prediction_label = (
         "Low Risk"
         if prediction == 0
         else "High Risk"
     )
 
-    now = datetime.now()
-
     db = SessionLocal()
 
-    # Simpan transaksi ke database
+    # Simpan ke database
     new_transaction = Transaction(
-        merchant="Tokopedia",
-        amount=500000,
+        merchant=data.merchant,
+        amount=data.amount,
         status=prediction_label,
-        location="Jakarta",
+        location="Indonesia",
         time=now.strftime("%H:%M"),
         date=now.strftime("%Y-%m-%d")
     )
@@ -68,7 +112,6 @@ def detect_latest_transaction():
     db.refresh(new_transaction)
     db.close()
 
-    # Return response API
     return {
         "prediction": prediction_label,
         "transaction_id": new_transaction.id,
