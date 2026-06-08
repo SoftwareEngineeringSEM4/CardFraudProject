@@ -10,7 +10,7 @@ scaler = joblib.load("backend/Models/scaler_fraud.pkl")
 model = joblib.load("backend/Models/model_fraud_rf.pkl")
 
 # Threshold sementara
-BEST_THRESHOLD = 0.65
+BEST_THRESHOLD = 0.3
 
 # Debug
 print(model)
@@ -23,21 +23,36 @@ MERCHANT_DATA = {
         "state": 1,
         "city_pop": 1000000,
         "merch_zipcode": 10110,
-        "distance_km": 5
+        "distance_km": 5,
+        "trans_month": 6,
+        "trans_day": 15,
+        "trans_hour": 14,
+        "trans_dayofweek": 3,
+        "trans_dayofyear": 166
     },
     "Shopee": {
         "category": 2,
         "state": 1,
         "city_pop": 1200000,
         "merch_zipcode": 10220,
-        "distance_km": 8
+        "distance_km": 8,
+        "trans_month": 7,
+        "trans_day": 10,
+        "trans_hour": 18,
+        "trans_dayofweek": 1,
+        "trans_dayofyear": 191
     },
     "Traveloka": {
         "category": 3,
         "state": 2,
         "city_pop": 800000,
         "merch_zipcode": 40115,
-        "distance_km": 20
+        "distance_km": 20,
+        "trans_month": 8,
+        "trans_day": 5,
+        "trans_hour": 10,
+        "trans_dayofweek": 5,
+        "trans_dayofyear": 217
     },
     "Netflix": {
         "category": 4,
@@ -52,6 +67,18 @@ MERCHANT_DATA = {
         "city_pop": 700000,
         "merch_zipcode": 80119,
         "distance_km": 30
+    },
+    "fraud_Hamill-D'Amore": {
+        "category": 6,
+        "state": 6,
+        "city_pop": 23,
+        "merch_zipcode": 79759,
+        "distance_km": 12000,
+        "trans_month": 6,
+        "trans_day": 21,
+        "trans_hour": 22,
+        "trans_dayofweek": 6,
+        "trans_dayofyear": 173
     }
 }
 
@@ -76,11 +103,11 @@ def detect_transaction(data):
         "age": data.age,
         "distance_km": merchant_data["distance_km"],
         "gender_female": 1 if data.gender.lower() == "female" else 0,
-        "trans_month": now.month,
-        "trans_day": now.day,
-        "trans_hour": now.hour,
-        "trans_dayofweek": now.weekday(),
-        "trans_dayofyear": now.timetuple().tm_yday
+        "trans_month": merchant_data.get("trans_month", now.month),
+        "trans_day": merchant_data.get("trans_day", now.day),
+        "trans_hour": merchant_data.get("trans_hour", now.hour),
+        "trans_dayofweek": merchant_data.get("trans_dayofweek", now.weekday()),
+        "trans_dayofyear": merchant_data.get("trans_dayofyear", now.timetuple().tm_yday)
     }])
 
     # Samakan urutan feature dengan scaler
