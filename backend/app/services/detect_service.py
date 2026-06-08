@@ -9,6 +9,9 @@ from backend.app.models.transaction import Transaction
 scaler = joblib.load("backend/Models/scaler_fraud.pkl")
 model = joblib.load("backend/Models/model_fraud_rf.pkl")
 
+# Threshold sementara
+BEST_THRESHOLD = 0.65
+
 # Debug
 print(model)
 print(scaler.feature_names_in_)
@@ -86,14 +89,24 @@ def detect_transaction(data):
     # Scaling
     scaled_sample = scaler.transform(sample)
 
-    # Predict
-    prediction = model.predict(scaled_sample)[0]
+    # Probability
+    proba = model.predict_proba(scaled_sample)[0][1]
 
+
+
+    prediction = (
+        1
+        if proba >= BEST_THRESHOLD
+        else 0
+    )
+
+
+    #
     prediction_label = (
         "Low Risk"
         if prediction == 0
         else "High Risk"
-    )
+)
 
     db = SessionLocal()
 
@@ -114,6 +127,7 @@ def detect_transaction(data):
 
     return {
         "prediction": prediction_label,
+        "probability": round(float(proba), 4),
         "transaction_id": new_transaction.id,
         "merchant": new_transaction.merchant,
         "amount": new_transaction.amount,
