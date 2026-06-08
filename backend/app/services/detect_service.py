@@ -10,7 +10,7 @@ scaler = joblib.load("backend/Models/scaler_fraud.pkl")
 model = joblib.load("backend/Models/model_fraud_rf.pkl")
 
 # Threshold sementara
-BEST_THRESHOLD = 0.65
+BEST_THRESHOLD = 0.3
 
 # Debug
 print(model)
@@ -59,24 +59,14 @@ MERCHANT_DATA = {
         "state": 3,
         "city_pop": 500000,
         "merch_zipcode": 60231,
-        "distance_km": 15,
-        "trans_month": 9,
-        "trans_day": 20,
-        "trans_hour": 21,
-        "trans_dayofweek": 4,
-        "trans_dayofyear": 263
+        "distance_km": 15
     },
     "Steam": {
         "category": 5,
         "state": 4,
         "city_pop": 700000,
         "merch_zipcode": 80119,
-        "distance_km": 30,
-        "trans_month": 10,
-        "trans_day": 2,
-        "trans_hour": 16,
-        "trans_dayofweek": 2,
-        "trans_dayofyear": 275
+        "distance_km": 30
     },
     "fraud_Hamill-D'Amore": {
         "category": 6,
