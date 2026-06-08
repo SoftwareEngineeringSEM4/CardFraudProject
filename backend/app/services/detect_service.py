@@ -23,35 +23,72 @@ MERCHANT_DATA = {
         "state": 1,
         "city_pop": 1000000,
         "merch_zipcode": 10110,
-        "distance_km": 5
+        "distance_km": 5,
+        "trans_month": 6,
+        "trans_day": 15,
+        "trans_hour": 14,
+        "trans_dayofweek": 3,
+        "trans_dayofyear": 166
     },
     "Shopee": {
         "category": 2,
         "state": 1,
         "city_pop": 1200000,
         "merch_zipcode": 10220,
-        "distance_km": 8
+        "distance_km": 8,
+        "trans_month": 7,
+        "trans_day": 10,
+        "trans_hour": 18,
+        "trans_dayofweek": 1,
+        "trans_dayofyear": 191
     },
     "Traveloka": {
         "category": 3,
         "state": 2,
         "city_pop": 800000,
         "merch_zipcode": 40115,
-        "distance_km": 20
+        "distance_km": 20,
+        "trans_month": 8,
+        "trans_day": 5,
+        "trans_hour": 10,
+        "trans_dayofweek": 5,
+        "trans_dayofyear": 217
     },
     "Netflix": {
         "category": 4,
         "state": 3,
         "city_pop": 500000,
         "merch_zipcode": 60231,
-        "distance_km": 15
+        "distance_km": 15,
+        "trans_month": 9,
+        "trans_day": 20,
+        "trans_hour": 21,
+        "trans_dayofweek": 4,
+        "trans_dayofyear": 263
     },
     "Steam": {
         "category": 5,
         "state": 4,
         "city_pop": 700000,
         "merch_zipcode": 80119,
-        "distance_km": 30
+        "distance_km": 30,
+        "trans_month": 10,
+        "trans_day": 2,
+        "trans_hour": 16,
+        "trans_dayofweek": 2,
+        "trans_dayofyear": 275
+    },
+    "fraud_Hamill-D'Amore": {
+        "category": 6,
+        "state": 6,
+        "city_pop": 23,
+        "merch_zipcode": 79759,
+        "distance_km": 12000,
+        "trans_month": 6,
+        "trans_day": 21,
+        "trans_hour": 22,
+        "trans_dayofweek": 6,
+        "trans_dayofyear": 173
     }
 }
 
@@ -76,11 +113,11 @@ def detect_transaction(data):
         "age": data.age,
         "distance_km": merchant_data["distance_km"],
         "gender_female": 1 if data.gender.lower() == "female" else 0,
-        "trans_month": now.month,
-        "trans_day": now.day,
-        "trans_hour": now.hour,
-        "trans_dayofweek": now.weekday(),
-        "trans_dayofyear": now.timetuple().tm_yday
+        "trans_month": merchant_data.get("trans_month", now.month),
+        "trans_day": merchant_data.get("trans_day", now.day),
+        "trans_hour": merchant_data.get("trans_hour", now.hour),
+        "trans_dayofweek": merchant_data.get("trans_dayofweek", now.weekday()),
+        "trans_dayofyear": merchant_data.get("trans_dayofyear", now.timetuple().tm_yday)
     }])
 
     # Samakan urutan feature dengan scaler
