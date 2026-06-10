@@ -1,0 +1,18 @@
+[
+        {
+            "id": 1,
+            "merchant": "Steam",
+            "amount": 500000,
+            "status": "Low Risk",
+            "date": "2026-05-09"
+        },
+        {
+            "id" : 2,
+            "merchant": "Shopee",
+            "amount": 200000,
+            "status": "High Risk",
+            "date": "2026-05-08"
+        }
+
+
+]
